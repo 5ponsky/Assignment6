@@ -40,7 +40,7 @@ class Chuck extends Sprite {
 
     try {
       if(chuck_image == null)
-        this.chuck_image = ImageIO.read(new File("chuck_norris.png"));
+        Chuck.chuck_image = ImageIO.read(new File("chuck_norris.png"));
     } catch(Exception e) {
       e.printStackTrace(System.err);
       System.exit(1);
@@ -95,7 +95,7 @@ class Chuck extends Sprite {
   }
 
   public void drawYourself(Graphics g) {
-    g.drawImage(this.chuck_image, this.x_pos, this.y_pos, null);
+    g.drawImage(Chuck.chuck_image, this.x_pos, this.y_pos, null);
   }
 
 }

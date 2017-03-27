@@ -1,7 +1,8 @@
 
 
 
-function Bird() {
+function Bird(model) {
+  this.model = model;
   this.flapped = false;
   this.gravity = -6.5;
   this.x_pos = 10;
@@ -52,6 +53,8 @@ Bird.prototype.update = function () {
       this.y_pos = 0;
       this.gravity = 0;
     }
+
+    return false;
 };
 
 Bird.prototype.flap = function () {

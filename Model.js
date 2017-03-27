@@ -8,21 +8,29 @@ function Model() {
   this.hand = new Hand(this.bird);
   this.cloud = new Cloud(random);
   this.tube = new Tube(random);
-  this.sprites = new spriteList(); // fix
+  this.sprites = []; // We might need a linnked list instead
 
-
+  this.sprites.push(this.cloud);
+  this.sprites.push(this.bird);
+  this.sprites.push(this.hand);
 }
 
 // Update the model
 Model.prototype.update = function () {
+
   // Iterate the list of sprites
-  // While...
+  for (var s in this.sprites) {
+    if(s.update()) {
+      
+    }
+    //if (sprites.hasOwnProperty(s)) { }
+  }
 
   // If enough time has passed, and we don't have too many tubes,
   // add one and reset the timer
   if(this.addTubeWhenZero <= 0 && this.maximumTubes < 4) {
     t = new Tube(random);
-    // add to spriteList
+    this.sprites.add(this.t);
     addTubeWhenZero = 45;
   }
   --addTubeWhenZero;
