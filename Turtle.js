@@ -18,13 +18,13 @@ Model.prototype.update = function()
 		this.ty++;
 	else if(this.ty > this.dest_y)
 		this.ty--;
-}
+};
 
 Model.prototype.setDestination = function(x, y)
 {
 	this.dest_x = x;
 	this.dest_y = y;
-}
+};
 
 
 
@@ -44,7 +44,7 @@ View.prototype.update = function()
 	let ctx = this.canvas.getContext("2d");
 	ctx.clearRect(0, 0, 1000, 500);
 	ctx.drawImage(this.turtle, this.model.tx, this.model.ty);
-}
+};
 
 
 
@@ -61,7 +61,7 @@ function Controller(model, view)
 Controller.prototype.onClick = function(event)
 {
 	this.model.setDestination(event.pageX - this.view.canvas.offsetLeft, event.pageY - this.view.canvas.offsetTop);
-}
+};
 
 
 
@@ -78,7 +78,7 @@ Game.prototype.onTimer = function()
 {
 	this.model.update();
 	this.view.update();
-}
+};
 
 
 
