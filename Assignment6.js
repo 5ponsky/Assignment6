@@ -1,7 +1,7 @@
 
 
 //
-// Lazy loading for images
+// Load all images first
 //
 let cloud_image, open_hand_image, closed_hand_image,
     tube_up_image, tube_down_image,
@@ -11,6 +11,12 @@ let cloud_image, open_hand_image, closed_hand_image,
 try {
   cloud_image = new Image();
   cloud_image.src = "cloud.png";
+
+  bird_up_image = new Image();
+  bird_up_image.src = "bird1.png";
+
+  bird_down_image = new Image();
+  bird_down_image.src = "bird2.png";
 
   open_hand_image = new Image();
   open_hand_image.src = "hand1.png";
@@ -24,12 +30,6 @@ try {
   tube_down_image = new Image();
   tube_down_image.src = "tube_down.png";
 
-  bird_up_image = new Image();
-  bird_up_image.src = "bird1.png";
-
-  bird_down_image = new Image();
-  bird_down_image.src = "bird2.png";
-
   chuck_image = new Image();
   chuck_image.src = "chuck_norris.png";
 
@@ -41,18 +41,14 @@ try {
 // Collision Detection
 //
 function collisionDetected(a, b) {
-  let a_h = a.naturalHeight;
-  let a_w = a.naturalWidth;
-  let b_h = b.naturalHeight;
-  let b_w = b.naturalWidth;
 
-  if(a.x_pos + a_w < b.x_pos) // right -> left collision
+  if(a.x_pos + a.imageW < b.x_pos) // right -> left collision
     return false;
-  if(a.x_pos > b.x_pos + b_w) // left -> right collision
+  if(a.x_pos > b.x_pos + b.imageW) // left -> right collision
     return false;
-  if(a.y_pos + a_h < b.y_pos) // bottom -> top collision
+  if(a.y_pos + a.imageH < b.y_pos) // bottom -> top collision
     return false;
-  if(a.y_pos > b.y_pos + b_h) // top -> bottom collision
+  if(a.y_pos > b.y_pos + b.imageH) // top -> bottom collision
     return false;
 
   console.log("HIT!");
@@ -62,8 +58,10 @@ function collisionDetected(a, b) {
 
 
 // ******************************
-// ******* Random ****************
+// ********* Random *************
 // ******************************
+
+// Returns a value between 0 and "max" (inclusive)
 function intRandom(max) {
   return Math.random() * max;
 }
@@ -90,16 +88,16 @@ Cloud.prototype.update = function () {
 
   if(this.x_pos < -501) {
     this.x_pos = 501;
-    this.y_pos = intRandom(250) + 50; // FIx
+    this.y_pos = intRandom(250) + 50;
   }
 };
 
-Cloud.prototype.isUp = function () { return cloud_image; };
+Cloud.prototype.returnImage = function () { return cloud_image; };
 
 
 
 // ******************************
-// ******* Hand ****************
+// ******* Hand *****************
 // ******************************
 function Hand(bird) {
   this.bird = bird;
@@ -123,7 +121,7 @@ Hand.prototype.grab = function () {
   }
 };
 
-Hand.prototype.isUp = function () {
+Hand.prototype.returnImage = function () {
   if(this.gotcha)
     return closed_hand_image;
   else
@@ -133,7 +131,7 @@ Hand.prototype.isUp = function () {
 
 
 // ******************************
-// ******* Tube ****************
+// *********** Tube *************
 // ******************************
 function Tube() {
   this.gravity = -4.5;
@@ -166,7 +164,7 @@ Tube.prototype.update = function () {
 Tube.prototype.beenHit = function (x) {
   this.xVel = x;
 
-// Fire off if the tube hasn't been hit until now
+  // Fire off if the tube hasn't been hit until now
   if(!this.isKicked) {
     this.isKicked = true;
     return false;
@@ -174,7 +172,9 @@ Tube.prototype.beenHit = function (x) {
   return true;
 };
 
-Tube.prototype.isUp = function () {
+Tube.prototype.returnImage = function () {
+  this.imageW = tube_up_image.naturalWidth;
+  this.imageH = tube_up_image.naturalHeight;
   if(this.tubeUpwards)
     return tube_up_image;
   else
@@ -182,11 +182,12 @@ Tube.prototype.isUp = function () {
 };
 
 // ******************************
-// ******* Bird ****************
+// ********** Bird **************
 // ******************************
 function Bird(model) {
   this.model = model;
   this.flapped = false;
+  this.allowDamageWhenZero = 0;
   this.gravity = -6.5;
   this.x_pos = 10;
   this.y_pos = 250;
@@ -198,7 +199,6 @@ Bird.prototype.update = function () {
   // Allow the bird to recharge energy so long as it has more than 0,
   // and cap the energy at 100
   if(this.energy > 0) {
-    if(this.flapCounter < 0) { this.up = false; } // Remove this later
     this.energy += 1;
 
     this.gravity = this.gravity + 0.4;
@@ -245,10 +245,12 @@ Bird.prototype.loseEnergy = function () {
     }
   }
   return false;
-  
+
 };
 
-Bird.prototype.isUp = function () {
+Bird.prototype.returnImage = function () {
+  this.imageW = bird_up_image.naturalWidth;
+  this.imageH = bird_up_image.naturalHeight;
   if(this.flapCounter > 0)
     return bird_up_image;
   else
@@ -280,7 +282,7 @@ Chuck.prototype.update = function () {
     this.xVel = -this.xVel;
   }
 
-  if(this.x_pos > 585 || this.y_pos > 510)
+  if(this.x_pos > 501 || this.y_pos > 501)
     return true;
   return false;
 };
@@ -290,19 +292,21 @@ Chuck.prototype.judoKick = function () {
     if(this.model.sprites[i] instanceof Tube) {
       if(collisionDetected(this, this.model.sprites[i])) {
 
+        // If the tube has already been hit, return false
+        // as we want nothing to collide with a "dead" tube
+        if(this.model.sprites[i].beenHit(this.xVel))
+          return false;
+        return true;
       }
     }
   }
-
-      //if(collisionBetween(this, s)) {
-        // If the tube has already been hit, return false
-        // as we want nothing to collide with a "dead" tube
-        //if(s.beenHit(xVel))
-          //return false;
-        //return true;
 };
 
-Chuck.prototype.isUp = function () { return chuck_image; };
+Chuck.prototype.returnImage = function () {
+  this.imageW = chuck_image.naturalWidth;
+  this.imageH = chuck_image.naturalHeight;
+  return chuck_image;
+};
 
 // ******************************
 // ******* Model ****************
@@ -313,8 +317,7 @@ function Model() {
   this.bird = new Bird(this);
   this.hand = new Hand(this.bird);
   this.cloud = new Cloud();
-  this.tube = new Tube();
-  this.sprites = []; // We might need a linnked list instead
+  this.sprites = [];
 
   this.sprites.push(this.cloud);
   this.sprites.push(this.bird);
@@ -350,7 +353,7 @@ Model.prototype.onClick = function () {
   this.bird.flap();
 };
 
-// send in the Don
+// send in the Chuck
 Model.prototype.sendChuck = function () {
   this.chuck = new Chuck(this);
   this.sprites.push(this.chuck);
@@ -366,7 +369,7 @@ function View(model) {
   this.canvas = document.getElementById("myCanvas");
 }
 
-// Update the screen
+// Draw the game to the screen
 View.prototype.update = function () {
   let ctx = this.canvas.getContext("2d");
   ctx.clearRect(0, 0, 500, 500);
@@ -375,14 +378,18 @@ View.prototype.update = function () {
 
   // Draw Sprites
   for (let i = 0; i < this.model.sprites.length; ++i) {
-    ctx.drawImage(this.model.sprites[i].isUp(), this.model.sprites[i].x_pos, this.model.sprites[i].y_pos);
+    // JS won't always load the image if you place the method call inline
+    //so sometimes we need to put it in a variable first.
+    let img = this.model.sprites[i].returnImage();
+    ctx.drawImage(img, this.model.sprites[i].x_pos, this.model.sprites[i].y_pos);
   }
 
   // Draw energy bar
-  //ctx.setColor(new Color(0, 255, 0));
-  //ctx.fillRect(425, 200, 75, 2 * model.bird.energy);
-  //ctx.setColor(new Color(0, 0, 0));
-  //ctx.drawRect(424, 199, 76, 201);
+  ctx.strokeRect(425, 200, 76, 201);
+
+  ctx.fillStyle="#00FF00";
+  ctx.fill();
+  ctx.fillRect(425, 200, 75, 2 * this.model.bird.energy);
 };
 
 
@@ -399,17 +406,16 @@ function Controller(model, view) {
 }
 
 Controller.prototype.onClick = function (event) {
-  console.log(event);
-  if(event.which === 1)
+  if(event.which === 1) // 1 == LMB
     this.model.onClick();
-  else if(event.which === 3)
+  else if(event.which === 3) //  3 == RMB
     this.model.sendChuck();
 };
 
 
 
 // ******************************
-// ******* Game ****************
+// ******* Game *****************
 // ******************************
 function Game() {
   this.model = new Model();
