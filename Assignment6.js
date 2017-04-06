@@ -13,7 +13,7 @@ try {
   cloud_image.src = "cloud.png";
 
   bird_up_image = new Image();
-  bird_up_image.src = "bird1.png";
+  bird_up_image.src = "bird1.png"; 
 
   bird_down_image = new Image();
   bird_down_image.src = "bird2.png";
